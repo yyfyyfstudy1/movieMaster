@@ -103,7 +103,9 @@ const Home = () => {
             <HeroSlide />
             <Dialog open={open} onClose={handleClose}>
                 <DialogContent>
-                <h1>Hello! <span style={{ color: "red" }}>{currentUser.displayName || "Stranger"}</span> try to get a movie !</h1>
+                <h1>Hello! <span style={{ color: "red" }}>{currentUser && currentUser.displayName ? currentUser.displayName : "Stranger"}</span> try to get a movie !</h1>
+
+
 
 
                     <TextField
