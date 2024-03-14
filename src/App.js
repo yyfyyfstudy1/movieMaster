@@ -5,7 +5,6 @@ import './App.scss';
 import { BrowserRouter, Route } from 'react-router-dom';
 
 import Header from './components/header/Header';
-import Footer from './components/footer/Footer';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 
@@ -19,7 +18,7 @@ function App() {
                     <>
                         <Header {...props}/>
                         <Routes/>
-                        <Footer/>
+              
                     </>
                 )}/>
             </BrowserRouter>

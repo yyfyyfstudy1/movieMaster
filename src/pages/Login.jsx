@@ -5,7 +5,9 @@ import { Snackbar, Alert } from '@mui/material';
 
 import { auth } from '../api/firebaseConfig';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-
+import '../components/hero-slide/hero-slide.scss';
+import bg from '../assets/footer-bg.jpg';
+import logoImage from '../assets/tmovie.png'
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -110,137 +112,155 @@ const LoginPage = () => {
 
 
   return (
+    <div
+      className={`hero-slide__item`}
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+        <div className="hero-slide__item__content container">
+      <Container component="main" maxWidth="xs">
 
-    <Container component="main" maxWidth="xs">
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000} // 6秒后自动隐藏
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        {errorMessage ? (
-          <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%', backgroundColor: 'black', color: 'white' }}>
-            {errorMessage}
-          </Alert>
-        ) : (
-          <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', backgroundColor: 'black', color: 'white' }}>
-            {successMessage}
-          </Alert>
-        )}
-      </Snackbar>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000} // 6秒后自动隐藏
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          {errorMessage ? (
+            <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%', backgroundColor: 'black', color: 'white' }}>
+              {errorMessage}
+            </Alert>
+          ) : (
+            <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', backgroundColor: 'black', color: 'white' }}>
+              {successMessage}
+            </Alert>
+          )}
+        </Snackbar>
 
 
 
 
 
-      <Box
-        sx={{
-          marginTop: 18,
-          marginBottom: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        {/* <Typography component="h1" variant="h5">
+        <Box
+          sx={{
+            marginTop: 18,
+            marginBottom: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+
+           {/* Logo图片 */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%', // 确保Logo占满整个容器宽度
+              marginBottom: 4, // 给Logo和下面的内容一些间距
+            }}
+          >
+            <img src={logoImage} alt="Logo" style={{ width: '100px', height: 'auto' }} /> {/* 根据需要调整Logo的尺寸 */}
+          </Box>
+          {/* <Typography component="h1" variant="h5">
           Sign in
         </Typography> */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
-            <Tab label="Sign In" />
-            <Tab label="Sign Up" />
-          </Tabs>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
+            <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+              <Tab label="Sign In" />
+              <Tab label="Sign Up" />
+            </Tabs>
+          </Box>
+          <TabPanel value={tabValue} index={0}>
+            <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1 }}>
+              <TextField
+                error={emailError}
+                helperText={emailError ? errorText : ''}
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextField
+                error={passwordError}
+                helperText={passwordError ? errorText : ''}
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          </TabPanel>
+          <TabPanel value={tabValue} index={1}>
+            <Box component="form" onSubmit={handleRegister} noValidate sx={{ mt: 1 }}>
+              <TextField
+                error={emailError}
+                helperText={emailError ? errorText : ''}
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                id="register-email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextField
+                error={passwordError}
+                helperText={passwordError ? errorText : ''}
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="register-password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign Up
+              </Button>
+            </Box>
+          </TabPanel>
+
+
+
+
         </Box>
-        <TabPanel value={tabValue} index={0}>
-          <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1 }}>
-            <TextField
-              error={emailError}
-              helperText={emailError ? errorText : ''}
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              error={passwordError}
-              helperText={passwordError ? errorText : ''}
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Sign In
-            </Button>
-          </Box>
-        </TabPanel>
-        <TabPanel value={tabValue} index={1}>
-          <Box component="form" onSubmit={handleRegister} noValidate sx={{ mt: 1 }}>
-            <TextField
-              error={emailError}
-              helperText={emailError ? errorText : ''}
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              id="register-email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              error={passwordError}
-              helperText={passwordError ? errorText : ''}
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="register-password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Sign Up
-            </Button>
-          </Box>
-        </TabPanel>
-
-
-
-
-      </Box>
-    </Container>
+      </Container>
+      </div>
+    </div>
   );
 };
 
