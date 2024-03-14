@@ -5,6 +5,7 @@ import { OutlineButton } from '../components/button/Button';
 import HeroSlide from '../components/hero-slide/HeroSlide';
 import MovieList from '../components/movie-list/MovieList';
 import { useHistory } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import tmdbApi, { category, movieType, tvType } from '../api/tmdbApi';
 
@@ -18,6 +19,12 @@ const Home = () => {
      "What are the best romantic movies to watch on a date?", 
      "Recommend a movie that will make me cry.", 
      "What's a good action movie for an adrenaline rush?", "Give me a movie that's visually stunning."]);
+
+
+    // 从Redux Store获取当前用户状态
+     const currentUser = useSelector(state => state.user.currentUser);
+     console.log(currentUser)
+     console.log(">??????????/")
 
 
     const axios = require('axios');
@@ -96,6 +103,9 @@ const Home = () => {
             <HeroSlide />
             <Dialog open={open} onClose={handleClose}>
                 <DialogContent>
+                <h1>Hello! <span style={{ color: "red" }}>{currentUser.displayName || "Stranger"}</span> try to get a movie !</h1>
+
+
                     <TextField
                         autoFocus
                         margin="dense"

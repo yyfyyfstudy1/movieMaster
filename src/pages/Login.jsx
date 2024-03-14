@@ -4,10 +4,15 @@ import { Snackbar, Alert } from '@mui/material';
 
 
 import { auth } from '../api/firebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import {createUserWithEmailAndPassword,updateProfile} from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+
 import '../components/hero-slide/hero-slide.scss';
 import bg from '../assets/footer-bg.jpg';
 import logoImage from '../assets/tmovie.png'
+import { useDispatch } from 'react-redux';
+import { observeAuthState, loginUser, logoutUser } from '../store/actions';
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -32,6 +37,8 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [tabValue, setTabValue] = useState(0);
   const [password, setPassword] = useState('');
+
+  const [userName, setUsername] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -39,17 +46,25 @@ const LoginPage = () => {
 
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [usernameError, setUsernameError] = useState(false);
   const [errorText, setErrorText] = useState('');
+  const dispatch = useDispatch();
 
   const validateForm = () => {
     let isValid = true;
     setEmailError(false);
     setPasswordError(false);
+    setUsernameError(false)
     setErrorText('');
 
     if (!email) {
       setEmailError(true);
       setErrorText('Email cannot be empty');
+      isValid = false;
+    }
+    if(!userName){
+      setUsernameError(true);
+      setErrorText('username cannot be empty');
       isValid = false;
     }
     if (!password) {
@@ -61,6 +76,8 @@ const LoginPage = () => {
       setErrorText('Password must be at least 6 characters long');
       isValid = false;
     }
+
+
     return isValid;
   };
 
@@ -69,36 +86,50 @@ const LoginPage = () => {
     setTabValue(newValue);
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
+    console.log(email, password);
+    console.log('Logged in ????????!');
     e.preventDefault();
     if (!validateForm()) {
       return; // 如果验证失败，则不继续执行登录逻辑
     }
     // 在这里添加登录逻辑，例如使用Firebase auth或其他认证服务
     console.log(email, password);
+    
     e.preventDefault();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+    
+    dispatch(loginUser(email, password))
+    .then(() => {
       console.log('Logged in successfully!');
-      // 处理登录成功的情况，例如跳转到主页
       setSnackbarOpen(true);
-      setErrorMessage('')
+      setErrorMessage('');
       setSuccessMessage('Logged in successfully!');
-    } catch (error) {
-      // 处理登录失败的情况
-      setSnackbarOpen(true); // 显示Snackbar
-      setErrorMessage("Login Failed: " + error.message); // 设置错误消息
-    }
+    })
+    .catch((error) => {
+      console.error("Login Failed:", error);
+      setSnackbarOpen(true);
+      setErrorMessage("Login Failed: " + error.message);
+    });
+
+
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    const db = getFirestore();
     if (!validateForm()) {
       return; // 如果验证失败，则不继续执行注册逻辑
     }
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('Registered successfully:', userCredential.user);
+      // console.log('Registered successfully:', userCredential.user);
+
+      // 更新用户信息
+      await updateProfile(userCredential.user, {
+        displayName: userName,
+        // photoURL: "如果你还有头像URL也可以在这里设置"
+      });
+
       setSnackbarOpen(true); // 显示注册成功的Snackbar
       setErrorMessage('')
       setSuccessMessage('Registered successfully !');
@@ -212,6 +243,9 @@ const LoginPage = () => {
               </Button>
             </Box>
           </TabPanel>
+
+
+
           <TabPanel value={tabValue} index={1}>
             <Box component="form" onSubmit={handleRegister} noValidate sx={{ mt: 1 }}>
               <TextField
@@ -243,6 +277,22 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+
+              <TextField
+                error={usernameError} // 根据你的状态管理逻辑来设置
+                helperText={usernameError ? errorText : ''} // 同上
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="username"
+                label="Username"
+                id="register-username"
+                autoComplete="username"
+                value={userName} 
+                onChange={(e) => setUsername(e.target.value)} 
+              />
+
               <Button
                 type="submit"
                 fullWidth

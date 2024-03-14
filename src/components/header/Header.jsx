@@ -5,6 +5,8 @@ import { Link, useLocation } from 'react-router-dom';
 import './header.scss';
 
 import logo from '../../assets/tmovie.png';
+import { useSelector } from 'react-redux';
+
 
 const headerNav = [
     {
@@ -33,8 +35,19 @@ const Header = () => {
 
     const { pathname } = useLocation();
     const headerRef = useRef(null);
-
-    const active = headerNav.findIndex(e => e.path === pathname);
+     // 从Redux Store获取当前用户状态
+     const currentUser = useSelector(state => state.user.currentUser);
+     console.log(currentUser)
+     console.log(">??????????/")
+     // 根据用户登录状态动态调整菜单项
+     const updatedHeaderNav = headerNav.map(nav => {
+         if (nav.display === "Login" && currentUser) {
+             return { ...nav, display: "Profile", path: "/profile" }; 
+         }
+         return nav;
+     });
+ 
+    const active = updatedHeaderNav.findIndex(e => e.path === pathname);
 
     useEffect(() => {
         const shrinkHeader = () => {
@@ -59,7 +72,7 @@ const Header = () => {
                 </div>
                 <ul className="header__nav">
                     {
-                        headerNav.map((e, i) => (
+                        updatedHeaderNav.map((e, i) => (
                             <li key={i} className={`${i === active ? 'active' : ''}`}>
                                 <Link to={e.path}>
                                     {e.display}
