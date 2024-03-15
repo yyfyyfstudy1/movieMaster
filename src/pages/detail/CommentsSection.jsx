@@ -79,6 +79,7 @@ const CommentsSection = ({ movieId }) => {
             userId: currentUser.uid,
             userName: currentUser.displayName,
             comment: newComment,
+            userAvatar: currentUser.photoURL,
             rate: newRating,
             publishedAt: new Date().toISOString(),
         });

@@ -6,12 +6,23 @@ import { storage } from '../api/firebaseConfig'; // 假设你的 Firebase 配置
 import '../components/hero-slide/hero-slide.scss';
 import bg from '../assets/footer-bg.jpg';
 import logoImage from '../assets/tmovie.png'
+import {updateProfile} from 'firebase/auth';
+import ActivityGrid from '../components/activity-grid/ActivityGrid'
 
 const UserProfile = () => {
     const currentUser = useSelector((state) => state.user.currentUser); // 获取当前用户信息
     const [userName, setUserName] = useState('');
     const [userEmail, setUserEmail] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
+     // 假设这个数组是你根据某种方式获取的用户活动数据
+    const userActivities = {
+        "2024-03-01": 1,
+        "2024-03-02": 2,
+        "2024-03-03": 6,
+        "2024-03-04": 0,
+        // 以此类推...
+      };
+
 
     useEffect(() => {
         if (currentUser) {
@@ -27,7 +38,10 @@ const UserProfile = () => {
         await uploadBytes(avatarRef, file);
         const url = await getDownloadURL(avatarRef);
         setAvatarUrl(url);
-        // 添加更新用户头像 URL 的逻辑
+        // 更新用户头像 URL 的逻辑
+        await updateProfile(currentUser, {
+            photoURL: url
+          });
     };
 
     const handleUpdateProfile = () => {
@@ -65,6 +79,8 @@ const UserProfile = () => {
                         sx={{ mb: 2 }}
                     />
                     <Button variant="contained" onClick={handleUpdateProfile}>Update Profile</Button>
+
+                    <ActivityGrid  />
                 </Box>
 
             </div>
