@@ -7,18 +7,20 @@ import Catalog from '../pages/Catalog';
 import Detail from '../pages/detail/Detail';
 import Login from '../pages/Login';
 import Footer from '../components/footer/Footer';
+import UserProfile from '../pages/UserProfile';
 const Routes = () => {
     const location = useLocation();
     return (
         <>
         <Switch>
             <Route path='/login' component={Login} />
+            <Route path='/profile' component={UserProfile} />
             <Route path='/:category/search/:keyword' component={Catalog} />
             <Route path='/:category/:id' component={Detail} />
             <Route path='/:category' component={Catalog} />
             <Route path='/' exact component={Home} />
         </Switch>
-        {location.pathname !== '/login' && <Footer />}
+        {location.pathname !== '/login'  && <Footer />}
     </>
 
     );

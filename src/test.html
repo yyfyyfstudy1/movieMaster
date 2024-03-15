@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Test</title>
+</head>
+<body>
+
+    <style>
+        /* 隐藏 input 元素，但仍可通过 label 触发 */
+        #file-input {
+            display: none;
+        }
+    </style>
+
+    <label for="file-input" style="cursor: pointer;">
+        <!-- 这个标签可以自定义样式，使其更具吸引力 -->
+        Click here to select a file
+    </label>
+    <input type="file" id="file-input" name="file" onchange="fileSelected(event)"/>
+
+    <script>
+        function fileSelected(event) {
+            // 当文件被选择时，这个函数会被调用
+            console.log('File selected:', event.target.files[0].name);
+            // 你可以在这里添加更多的处理逻辑
+        }
+    </script>
+
+</body>
+</html>
