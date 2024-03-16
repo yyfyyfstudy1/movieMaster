@@ -1,93 +1,96 @@
-import React from 'react';
-import { Grid, Paper, Typography, Box } from '@mui/material';
+import * as React from 'react';
+import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
 
-// 计算过去6个月的日期范围
-const getLastSixMonthsDates = () => {
-  const dates = [];
+// Mock function to represent fetching or computing the number of contributions for each day.
+const getContributionsForDay = (dayIndex) => {
+  // Return a random number of contributions for demonstration purposes
+  return Math.floor(Math.random() * 10);
+};
+
+// Determines the color based on the number of contributions
+const getDayColor = (count) => {
+  if (count === 0) return 'grey.300';
+  if (count <= 5) return 'success.light';
+  return 'success.main';
+};
+
+// Calculate the date for each cell, starting 6 months ago
+const getDateForCell = (cellIndex, startDate) => {
+  const date = new Date(startDate.getTime());
+  date.setDate(startDate.getDate() + cellIndex);
+  return date;
+};
+
+// Format date as YYYY-MM-DD
+const formatDate = (date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+// Function to get month name
+const getMonthName = (date) => {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return monthNames[date.getMonth()];
+};
+
+const ContributionsGraph = () => {
+  const weeks = 24; // Weeks in 6 months
+  const days = 7; // Days in a week
+  const totalDays = weeks * days;
+
+  // Calculate the start date: 6 months ago from today
   const today = new Date();
-  const sixMonthsAgo = new Date(new Date().setMonth(today.getMonth() - 6));
-
-  for (let day = sixMonthsAgo; day <= today; day.setDate(day.getDate() + 1)) {
-    dates.push(new Date(day).toISOString().split('T')[0]);
-  }
-
-  return dates;
-};
-
-// 假设活动数据是随机的（在实际应用中，应该从你的后端API获取）
-const getActivityData = (dates) => {
-  const activityData = {};
-  dates.forEach(date => {
-    activityData[date] = Math.floor(Math.random() * 6); // 0到5次观看
-  });
-  return activityData;
-};
-
-// 根据观看次数计算颜色
-const getColor = (count) => {
-  if (count >= 5) return '#1b5e20'; // 更深
-  if (count >= 3) return '#4caf50';
-  if (count > 0) return '#81c784';
-  return '#c8e6c9'; // 无活动
-};
-
-const ActivityGrid = () => {
-  const dates = getLastSixMonthsDates();
-  const activityData = getActivityData(dates);
+  const sixMonthsAgo = new Date(today.setMonth(today.getMonth() - 6));
 
   return (
-    <Box sx={{ px: 50, py:5 }}> {/* 容器添加padding */}
-      <Grid container spacing={1}>
-        {dates.map((date, index) => {
-          const day = new Date(date).getDate();
-          const isFirstDayOfMonth = day === 1;
+    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${weeks}, 20px)`, gap: '4px' }}>
+        {Array.from({ length: totalDays }).map((_, index) => {
+          const cellDate = getDateForCell(index, sixMonthsAgo);
+          const contributionsCount = getContributionsForDay(index);
+          const formattedDate = formatDate(cellDate);
+          // Calculate the column (week) and row (day) for each cell
+          const column = Math.floor(index / days) + 1;
+          const row = index % days + 1;
+          const isNewMonth = index % days === 0 && (index === 0 || cellDate.getMonth() !== getDateForCell(index - days, sixMonthsAgo).getMonth());
+
           return (
-            <React.Fragment key={date}>
-              {isFirstDayOfMonth && (
-                <Grid item xs={12} style={{ display: 'flex', alignItems: 'center' }} key={`month-${date}`}>
-                  <Typography variant="caption" style={{ fontWeight: 'bold' }}>
-                    {new Date(date).toLocaleDateString('default', { month: 'long', year: 'numeric' })}
-                  </Typography>
-                </Grid>
-              )}
-              <Grid item xs={2} sm={1} style={{ flexGrow: 1 }}>
-                <Paper
-                  elevation={1}
+            <React.Fragment key={index}>
+              {isNewMonth && (
+                <Box
                   sx={{
-                    backgroundColor: getColor(activityData[date]),
-                    // paddingTop: '175%', // 调整正方形大小
-                    position: 'relative',
-                    '&::before': { // 利用::before伪元素实现正方形
-                      content: '""',
-                      display: 'block',
-                      paddingBottom: '100%',
-                    }
+                    position: 'absolute',
+                    top: -20, // Adjust based on the desired distance above the grid
+                    left: `${(column - 1) * 24}px`, // Calculate based on column width + gap
+                    color: 'primary.main',
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
                   }}
                 >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.75rem', // 调整字体大小
-                    }}
-                  >
-                    {day}
-                  </Typography>
-                </Paper>
-              </Grid>
+                  {getMonthName(cellDate)}
+                </Box>
+              )}
+              <Tooltip title={`${formattedDate}: ${contributionsCount} contributions`}>
+                <Box
+                  sx={{
+                    gridColumn: column,
+                    gridRow: row,
+                    width: 20,
+                    height: 20,
+                    borderRadius: '2px',
+                    backgroundColor: getDayColor(contributionsCount),
+                    '&:hover': {
+                      opacity: 0.7,
+                    },
+                  }}
+                />
+              </Tooltip>
             </React.Fragment>
           );
         })}
-      </Grid>
+      </Box>
     </Box>
   );
 };
 
-export default ActivityGrid;
+export default ContributionsGraph;
