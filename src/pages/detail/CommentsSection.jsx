@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Avatar, Rating, Button, Card, CardContent, CardHeader, TextField, Typography, Box } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom'; // 引入Link组件
-import { database } from '../../api/firebaseConfig';
+import { database , firestore} from '../../api/firebaseConfig';
 import { ref, push, set, onValue } from 'firebase/database';
+import { doc, setDoc,getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Pagination } from '@mui/material';
+
 
 const mockComments = [
     {
@@ -29,7 +31,8 @@ const mockComments = [
 ];
 
 
-const CommentsSection = ({ movieId }) => {
+const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
+
     // 从Redux Store获取当前用户状态
     const currentUser = useSelector(state => state.user.currentUser);
 
@@ -68,11 +71,11 @@ const CommentsSection = ({ movieId }) => {
         });
     }, [movieId]); // 依赖项列表中包含 movieId，确保切换电影时更新评论列表
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log("Submitting new comment and rating: ", newComment, newRating);
 
-
+        // realtime database
         const commentRef = ref(database, 'comments/' + movieId);
         const newCommentRef = push(commentRef);
         set(newCommentRef, {
@@ -84,6 +87,51 @@ const CommentsSection = ({ movieId }) => {
             publishedAt: new Date().toISOString(),
         });
 
+
+        // firestore
+        const firestoreCommentRef = doc(firestore, 'userComments', currentUser.uid);
+        try {
+            // 尝试获取现有评论
+            const docSnapshot = await getDoc(firestoreCommentRef);
+            if (docSnapshot.exists() && docSnapshot.data()[movieId] && docSnapshot.data()[movieId].comments) {
+                // 深拷贝现有评论以避免直接修改状态
+                let existingComments = JSON.parse(JSON.stringify(docSnapshot.data()[movieId].comments));
+                // 添加新评论
+                existingComments.push({
+                    userName: currentUser.displayName,
+                    comment: newComment,
+                    rate: newRating,
+                    publishedAt: new Date().toISOString(),
+                });
+            
+                // 更新文档中的评论数组
+                await updateDoc(firestoreCommentRef, {
+                    [`${movieId}.comments`]: existingComments,
+                });
+            } else {
+                // 如果是第一条评论，或电影ID不存在，则使用 setDoc 创建新数据结构
+                await setDoc(firestoreCommentRef, {
+                    [movieId]: {
+                        movieTitle: movieTitle,
+                        imgUrl: imgUrl,
+                        comments: [{
+                            userName: currentUser.displayName,
+                            comment: newComment,
+                            rate: newRating,
+                            publishedAt: new Date().toISOString(),
+                        }]
+                    }
+                }, { merge: true });
+            }
+            
+        } catch (error) {
+            console.error("Error writing document to Firestore: ", error);
+        }
+
+
+
+
+        
         setNewComment("");
         setNewRating(2);
 

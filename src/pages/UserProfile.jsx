@@ -7,43 +7,121 @@ import '../components/hero-slide/hero-slide.scss';
 import bg from '../assets/footer-bg.jpg';
 import logoImage from '../assets/tmovie.png'
 import { updateProfile } from 'firebase/auth';
-import MyHeatmap from '../components/activity-grid/ActivityGrid'
 import Tooltip from '@uiw/react-tooltip';
 import HeatMap from '@uiw/react-heat-map';
+import { doc, getDoc } from 'firebase/firestore';
+import { firestore } from '../api/firebaseConfig';
+import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
+import '../scss/heatmap.scss'
+import MovieCommentsTimeline  from '../components/time-line/TimeLine'
+
 
 const UserProfile = () => {
     const currentUser = useSelector((state) => state.user.currentUser); // 获取当前用户信息
     const [userName, setUserName] = useState('');
+    const [uid, setUid] = useState('');
     const [userEmail, setUserEmail] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
-    // 假设这个数组是你根据某种方式获取的用户活动数据
-    const userActivities = {
-        "2024-03-01": 1,
-        "2024-03-02": 2,
-        "2024-03-03": 6,
-        "2024-03-04": 0,
-        // 以此类推...
-    };
-
-    const value = [
-        { date: '2016/01/11', count: 2 },
-        ...[...Array(17)].map((_, idx) => ({ date: `2016/01/${idx + 10}`, count: idx, })),
-        ...[...Array(17)].map((_, idx) => ({ date: `2016/02/${idx + 10}`, count: idx, })),
-        { date: '2016/04/12', count: 2 },
-        { date: '2016/05/01', count: 5 },
-        { date: '2016/05/02', count: 5 },
-        { date: '2016/05/03', count: 1 },
-        { date: '2016/05/04', count: 11 },
-        { date: '2016/05/08', count: 32 },
-    ];
+    const [value, setValue] = useState([]);
+    const [items, setItems] = useState([]);
+    // const value = [
+    //     { date: '2016/01/11', count: 2 },
+    //     { date: '2016/04/12', count: 20 },
+    //     { date: '2016/05/01', count: 5 },
+    //     { date: '2016/05/02', count: 5 },
+    //     { date: '2016/05/03', count: 1 },
+    //     { date: '2016/05/04', count: 11 },
+    //     { date: '2016/05/08', count: 32 },
+    // ];
 
     useEffect(() => {
         if (currentUser) {
             setUserName(currentUser.displayName || '');
             setUserEmail(currentUser.email || '');
             setAvatarUrl(currentUser.photoURL || '/path/to/default/avatar'); // 提供默认头像路径
+            // 调用函数并处理结果
+            fetchCommentsAndCount(currentUser.uid).then(value => {
+                console.log(value);
+                setValue(value)
+                // 这里你可以处理value数组，如设置状态或其他操作
+            });
+
+            const fetchData = async () => {
+                const commentsData = await fetchUserComments(currentUser.uid);
+
+                console.log(commentsData)
+                setItems(commentsData);
+            };
+
+            fetchData();
         }
     }, [currentUser]);
+
+
+
+    // 获取用户评论的函数
+    const fetchUserComments = async (uid) => {
+        const userCommentsRef = doc(firestore, `userComments/${uid}`);
+        const snapshot = await getDoc(userCommentsRef);
+
+        if (!snapshot.exists()) {
+            console.log("No data found!");
+            return [];
+        }
+
+        const data = snapshot.data();
+
+        const moviesWithComments = Object.entries(data).map(([movieId, movieData]) => ({
+            ...movieData,
+            movieId,
+            // 假设每个评论都有一个publishedAt属性
+            // 找出每部电影最新评论的时间
+            latestCommentTime: movieData.comments.reduce((latest, comment) => {
+              const commentTime = new Date(comment.publishedAt).getTime();
+              return commentTime > latest ? commentTime : latest;
+            }, 0),
+          }));
+
+           // 按最新评论时间对电影进行排序
+  moviesWithComments.sort((a, b) => b.latestCommentTime - a.latestCommentTime);
+        return moviesWithComments;
+    };
+
+
+    const fetchCommentsAndCount = async (uid) => {
+        const userCommentsRef = doc(firestore, `userComments/${uid}`);
+        try {
+            const docSnapshot = await getDoc(userCommentsRef);
+
+            if (docSnapshot.exists()) {
+                const data = docSnapshot.data();
+                const countsByDate = {};
+
+                Object.values(data).forEach(movie => {
+                    movie.comments.forEach(comment => {
+                        const date = new Date(comment.publishedAt).toISOString().split('T')[0].replace(/-/g, '/');
+                        countsByDate[date] = (countsByDate[date] || 0) + 1;
+                    });
+                });
+
+                const value = Object.entries(countsByDate).map(([date, count]) => ({
+                    date,
+                    count
+                }));
+
+                return value;
+            } else {
+                console.log("No comments found for user:", uid);
+                return [];
+            }
+        } catch (error) {
+            console.error("Error fetching comments: ", error);
+            return [];
+        }
+    };
+
+
+
 
     const handleAvatarChange = async (event) => {
         const file = event.target.files[0];
@@ -79,7 +157,7 @@ const UserProfile = () => {
                         onChange={handleAvatarChange}
                     />
                     <label htmlFor="raised-button-file">
-                        <Avatar src={avatarUrl} sx={{ width: 100, height: 100, mb: 2, cursor: 'pointer' }} />
+                        <Avatar src={avatarUrl} sx={{ width: 130, height: 130, mb: 2, cursor: 'pointer' }} />
                     </label>
                     <Typography variant="h6">{userName}</Typography>
                     <TextField
@@ -92,30 +170,30 @@ const UserProfile = () => {
                         sx={{ mb: 2 }}
                     />
                     {/* <Button variant="contained" onClick={handleUpdateProfile}>Update Profile</Button> */}
-                    
+
                     <HeatMap
                         value={value}
                         width={600}
-                        style={{margin:40, color: 'white', '--rhm-rect-active': 'red',transform: 'scale(1.5)'  }}
-                        startDate={new Date('2016/01/01')}
+                        style={{ margin: 40, color: 'white', '--rhm-rect-active': 'red', transform: 'scale(1.5)' }}
+                        startDate={new Date('2024/01/01')}
                         // endDate={new Date('2016/06/01')}
                         // monthLabels={}
                         weekLabels={['Sun', '', 'Tue', '', 'Thu', '', 'Sat']}
-                        space = {4}
+                        space={4}
                         legendRender={() => null} // 这里设置为返回null，不渲染图例
                         rectProps={{
                             rx: 2
-                          }}
+                        }}
                         panelColors={{
                             0: '#ffebee', // 很浅的红色
-                            2: '#ffcdd2', // 较浅的红色
+                            1: '#ffcdd2', // 较浅的红色
                             4: '#ef9a9a', // 中等浅红色
                             10: '#e57373', // 鲜艳的红色
                             20: '#ef5350', // 较深的红色
                             30: '#c62828', // 深红色
-                          }}
-                          
-                          
+                        }}
+
+
                         rectRender={(props, data) => {
                             // if (!data.count) return <rect {...props} />;
                             const tooltipContent = `Date: ${data.date}, Count: ${data.count || 0}`;
@@ -126,6 +204,11 @@ const UserProfile = () => {
                             );
                         }}
                     />
+
+
+
+                    <MovieCommentsTimeline movieData={items}/>
+
                 </Box>
 
             </div>

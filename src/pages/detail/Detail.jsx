@@ -20,7 +20,9 @@ const Detail = () => {
     useEffect(() => {
         const getDetail = async () => {
             const response = await tmdbApi.detail(category, id, { params: {} });
+
             setItem(response);
+            console.log(response)
             window.scrollTo(0, 0);
         }
         getDetail();
@@ -60,7 +62,7 @@ const Detail = () => {
     
                         <div className="container">
                             <div className="section mb-3">
-                                <CommentsSection movieId={item.id} />
+                                <CommentsSection movieId={item.id} movieTitle={item.title} imgUrl={item.poster_path} />
                             </div>
 
                             <div className="section mb-3">

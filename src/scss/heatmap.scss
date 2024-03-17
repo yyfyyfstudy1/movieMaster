@@ -70,3 +70,28 @@
   .react-calendar-heatmap .color-gitlab-4 {
     fill: #254e77;
   }
+  .my-card{
+    .my-card-subtitle{
+      color: white;
+    }
+    .my-title{
+      color: white;
+    }
+    .my-card-title{
+      color: white;
+    }
+  }
+  .vertical-timeline-element--work{
+    background-color: transparent;
+  }
+
+  /* 增加时间线元素与轴线的距离 */
+.react-vertical-timeline-element-content {
+  margin-left: 30px !important; /* 向左侧元素添加额外距离 */
+  margin-right: 30px !important; /* 向右侧元素添加额外距离 */
+}
+
+/* 调整箭头样式，以确保它与调整后的卡片对齐 */
+.react-vertical-timeline-element-content-arrow {
+  left: -15px !important; /* 如果需要，根据实际效果调整这个值 */
+}

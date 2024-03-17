@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from 'firebase/auth';
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -29,3 +30,4 @@ const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const storage = getStorage(app); // 初始化 Firebase Storage
+export const firestore = getFirestore(app);
