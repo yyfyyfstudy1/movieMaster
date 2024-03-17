@@ -22,10 +22,6 @@ const headerNav = [
         path: '/tv'
     },
     {
-        display: 'Creativity',
-        path: '/tv'
-    },
-    {
         display: 'Login',
         path: '/login'
     }
@@ -68,7 +64,7 @@ const Header = () => {
             <div className="header__wrap container">
                 <div className="logo">
                     <img src={logo} alt="" />
-                    <Link to="/">tMovies</Link>
+                    <Link to="/">MovieEveryday</Link>
                 </div>
                 <ul className="header__nav">
                     {

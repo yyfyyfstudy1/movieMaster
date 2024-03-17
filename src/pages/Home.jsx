@@ -6,6 +6,7 @@ import HeroSlide from '../components/hero-slide/HeroSlide';
 import MovieList from '../components/movie-list/MovieList';
 import { useHistory } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 
 import tmdbApi, { category, movieType, tvType } from '../api/tmdbApi';
 
@@ -13,18 +14,19 @@ const Home = () => {
     const [open, setOpen] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [keywords, setKeywords] = useState([
-        "What's a good movie for a family movie night?", 
-    "I need a laugh. Recommend a comedy, please.", 
-    "Suggest a movie for someone who loves sci-fi.",
-     "What are the best romantic movies to watch on a date?", 
-     "Recommend a movie that will make me cry.", 
-     "What's a good action movie for an adrenaline rush?", "Give me a movie that's visually stunning."]);
+        "What's a good movie for a family movie night?",
+        "I need a laugh. Recommend a comedy, please.",
+        "Suggest a movie for someone who loves sci-fi.",
+        "What are the best romantic movies to watch on a date?",
+        "Recommend a movie that will make me cry.",
+        "What's a good action movie for an adrenaline rush?", "Give me a movie that's visually stunning."]);
 
 
     // 从Redux Store获取当前用户状态
-     const currentUser = useSelector(state => state.user.currentUser);
-     console.log(currentUser)
-     console.log(">??????????/")
+    const currentUser = useSelector(state => state.user.currentUser);
+    console.log(currentUser)
+    console.log(">??????????/")
+    const [loading, setLoading] = useState(false);
 
 
     const axios = require('axios');
@@ -32,7 +34,7 @@ const Home = () => {
     const openAI = axios.create({
         baseURL: 'https://api.openai.com/v1/chat',
         headers: {
-            'Authorization': `Bearer ` +  process.env.REACT_APP_OPENAI_API_KEY, // 替换为你的OpenAI API密钥
+            'Authorization': `Bearer ` + process.env.REACT_APP_OPENAI_API_KEY, // 替换为你的OpenAI API密钥
             'Content-Type': 'application/json',
         }
     });
@@ -49,12 +51,12 @@ const Home = () => {
                 n: 1,
                 stop: null,
             });
-    
+
             console.log("Response from GPT-3.5 Turbo: ", response.data.choices[0].message.content);
-    
+
             // 使用得到的回复作为查询参数调用tmdbApi.search
             const searchResponse = await tmdbApi.search('movie', { params: { query: response.data.choices[0].message.content } });
-    
+
             // 确保从这个函数返回tmdbApi.search的结果
             return searchResponse;
         } catch (error) {
@@ -63,7 +65,7 @@ const Home = () => {
             return undefined;
         }
     };
-    
+
 
     useEffect(() => {
         setOpen(true); // 页面加载时打开弹窗
@@ -89,7 +91,7 @@ const Home = () => {
             .then(GPTreply => {
                 console.log(GPTreply.results[0].id);
                 // 执行页面跳转逻辑，到电影详情页面
-                history.push(`/movie/${GPTreply.results[0].id}`);  
+                history.push(`/movie/${GPTreply.results[0].id}`);
             })
             .catch(error => {
                 console.error("Error fetching GPT-3.5 Turbo response: ", error);
@@ -103,16 +105,14 @@ const Home = () => {
             <HeroSlide />
             <Dialog open={open} onClose={handleClose}>
                 <DialogContent>
-                <h1>Hello! <span style={{ color: "red" }}>{currentUser && currentUser.displayName ? currentUser.displayName : "Anonymous"}</span> try to get a movie !</h1>
-
-
+                    <h1>Hello! <span style={{ color: "red" }}>{currentUser && currentUser.displayName ? currentUser.displayName : "Anonymous"}</span> try to get a movie !</h1>
 
 
                     <TextField
                         autoFocus
                         margin="dense"
                         id="name"
-                        label="What do you want to watch today?"
+                        label="Enter any ideas you have ！"
                         type="text"
                         fullWidth
                         variant="outlined"
@@ -131,7 +131,11 @@ const Home = () => {
                     </div>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleSubmit} color="primary">
+                    <Button
+                        onClick={handleSubmit}
+                        color="primary"
+                        startIcon={<ModelTrainingIcon />} // 在按钮文本前添加图标
+                    >
                         Get your daily movie ! ! !
                     </Button>
                 </DialogActions>

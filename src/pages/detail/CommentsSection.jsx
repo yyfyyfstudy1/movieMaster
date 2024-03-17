@@ -8,6 +8,7 @@ import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Pagination } from '@mui/material';
 import { Input, InputAdornment, IconButton } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // 或者任何适合的图标
+import DeleteIcon from '@mui/icons-material/DeleteSweep';
 import Icon from '@mui/icons-material/AutoFixHigh';
 const mockComments = [
     {
@@ -196,6 +197,13 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
         }
 
     };
+
+    const handleDelete = (commentId) => {
+        // 实现删除评论的逻辑，例如调用API或更新状态
+        console.log('Deleting comment with id:', commentId);
+        // 假设你有一个函数是用来删除评论的，你可以在这里调用它
+        // deleteComment(commentId);
+      };
     return (
 
         <div>
@@ -217,6 +225,11 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
                                 </Typography>
                             </>
                         }
+                        // action={
+                        //     <IconButton style={{ color: 'red' }} aria-label="delete" onClick={() => handleDelete(comment.id)}>
+                        //       <DeleteIcon />
+                        //     </IconButton>
+                        //   }
                     />
                     <CardContent>
                         <Typography variant="body2">{comment.comment}</Typography>

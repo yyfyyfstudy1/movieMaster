@@ -6,7 +6,7 @@ import { Snackbar, Alert } from '@mui/material';
 import { auth } from '../api/firebaseConfig';
 import {createUserWithEmailAndPassword,updateProfile} from 'firebase/auth';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
-
+import { useHistory } from 'react-router-dom';
 import '../components/hero-slide/hero-slide.scss';
 import bg from '../assets/footer-bg.jpg';
 import logoImage from '../assets/tmovie.png'
@@ -85,7 +85,7 @@ const LoginPage = () => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
+  const history = useHistory();
   const handleLogin = (e) => {
     console.log(email, password);
     console.log('Logged in ????????!');
@@ -104,6 +104,7 @@ const LoginPage = () => {
       setSnackbarOpen(true);
       setErrorMessage('');
       setSuccessMessage('Logged in successfully!');
+      history.push(`/`);
     })
     .catch((error) => {
       console.error("Login Failed:", error);

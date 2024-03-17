@@ -13,7 +13,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import '../scss/heatmap.scss'
-import MovieCommentsTimeline  from '../components/time-line/TimeLine'
+import MovieCommentsTimeline from '../components/time-line/TimeLine'
 
 
 const UserProfile = () => {
@@ -24,15 +24,28 @@ const UserProfile = () => {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [value, setValue] = useState([]);
     const [items, setItems] = useState([]);
-    // const value = [
-    //     { date: '2016/01/11', count: 2 },
-    //     { date: '2016/04/12', count: 20 },
-    //     { date: '2016/05/01', count: 5 },
-    //     { date: '2016/05/02', count: 5 },
-    //     { date: '2016/05/03', count: 1 },
-    //     { date: '2016/05/04', count: 11 },
-    //     { date: '2016/05/08', count: 32 },
-    // ];
+    const value1 = [
+        { date: '2024/01/11', count: 2 },
+        { date: '2024/04/12', count: 20 },
+        { date: '2024/05/01', count: 5 },
+        { date: '2024/05/02', count: 5 },
+        { date: '2024/05/03', count: 1 },
+        { date: '2024/05/04', count: 11 },
+        { date: '2024/03/08', count: 32 },
+        { date: '2024/03/09', count: 32 },
+        { date: '2024/03/10', count: 2 },
+        { date: '2024/03/11', count: 22 },
+        { date: '2024/03/12', count: 32 },
+        { date: '2024/03/13', count: 1 },
+        { date: '2024/03/14', count: 11 },
+        { date: '2024/03/15', count: 32 },
+        { date: '2024/03/16', count: 32 },
+        { date: '2024/03/17', count: 32 },
+        { date: '2024/03/18', count: 32 },
+        { date: '2024/03/19', count: 32 },
+        { date: '2024/03/20', count: 1 },
+        { date: '2024/03/21', count: 11 },
+    ];
 
     useEffect(() => {
         if (currentUser) {
@@ -63,14 +76,14 @@ const UserProfile = () => {
     const fetchUserComments = async (uid) => {
         const userCommentsRef = doc(firestore, `userComments/${uid}`);
         const snapshot = await getDoc(userCommentsRef);
-    
+
         if (!snapshot.exists()) {
             console.log("No data found!");
             return [];
         }
-    
+
         const data = snapshot.data();
-    
+
         const moviesWithComments = Object.entries(data).map(([movieId, movieData]) => {
             // 首先，对评论进行排序
             const sortedComments = movieData.comments.sort((a, b) => {
@@ -78,10 +91,10 @@ const UserProfile = () => {
                 const timeB = new Date(b.publishedAt).getTime();
                 return timeB - timeA; // 从最新到最旧
             });
-    
+
             // 然后，找出每部电影最新评论的时间
             const latestCommentTime = sortedComments.length > 0 ? new Date(sortedComments[0].publishedAt).getTime() : 0;
-    
+
             return {
                 ...movieData,
                 movieId,
@@ -89,13 +102,13 @@ const UserProfile = () => {
                 latestCommentTime,
             };
         });
-    
+
         // 按最新评论时间对电影进行排序
         moviesWithComments.sort((a, b) => b.latestCommentTime - a.latestCommentTime);
-    
+
         return moviesWithComments;
     };
-    
+
 
 
     const fetchCommentsAndCount = async (uid) => {
@@ -171,6 +184,7 @@ const UserProfile = () => {
                     </label>
                     <Typography variant="h6">{userName}</Typography>
                     <TextField
+                        style={{marginTop:15}}
                         label="Email"
                         value={userEmail}
                         InputProps={{
@@ -182,11 +196,11 @@ const UserProfile = () => {
                     {/* <Button variant="contained" onClick={handleUpdateProfile}>Update Profile</Button> */}
 
                     <HeatMap
-                        value={value}
+                        value={value1}
                         width={600}
                         style={{ margin: 60, color: 'white', '--rhm-rect-active': 'red', transform: 'scale(1.7)' }}
                         startDate={new Date('2024/01/01')}
-                        // endDate={new Date('2016/06/01')}
+                        // endDate={new Date('2024/06/01')}
                         // monthLabels={}
                         weekLabels={['Sun', '', 'Tue', '', 'Thu', '', 'Sat']}
                         space={4}
@@ -217,7 +231,8 @@ const UserProfile = () => {
 
 
 
-                    <MovieCommentsTimeline movieData={items}/>
+                    {items.length > 0 && <MovieCommentsTimeline movieData={items} />}
+
 
                 </Box>
 
