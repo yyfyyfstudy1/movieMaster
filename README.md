@@ -1,7 +1,7 @@
 
 # An amazing piece of work that combines the power of AI to help you record every one of your movies
 
-## online experience： 
+## Try it online ： 
 ### https://main--verydaymovie.netlify.app/
 
 ![image](https://github.com/yyfyyfstudy1/movieMaster/assets/88156048/11d72e55-ead7-421b-a3a5-99137685cfe2)
