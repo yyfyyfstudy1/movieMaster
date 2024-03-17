@@ -63,29 +63,39 @@ const UserProfile = () => {
     const fetchUserComments = async (uid) => {
         const userCommentsRef = doc(firestore, `userComments/${uid}`);
         const snapshot = await getDoc(userCommentsRef);
-
+    
         if (!snapshot.exists()) {
             console.log("No data found!");
             return [];
         }
-
+    
         const data = snapshot.data();
-
-        const moviesWithComments = Object.entries(data).map(([movieId, movieData]) => ({
-            ...movieData,
-            movieId,
-            // 假设每个评论都有一个publishedAt属性
-            // 找出每部电影最新评论的时间
-            latestCommentTime: movieData.comments.reduce((latest, comment) => {
-              const commentTime = new Date(comment.publishedAt).getTime();
-              return commentTime > latest ? commentTime : latest;
-            }, 0),
-          }));
-
-           // 按最新评论时间对电影进行排序
-  moviesWithComments.sort((a, b) => b.latestCommentTime - a.latestCommentTime);
+    
+        const moviesWithComments = Object.entries(data).map(([movieId, movieData]) => {
+            // 首先，对评论进行排序
+            const sortedComments = movieData.comments.sort((a, b) => {
+                const timeA = new Date(a.publishedAt).getTime();
+                const timeB = new Date(b.publishedAt).getTime();
+                return timeB - timeA; // 从最新到最旧
+            });
+    
+            // 然后，找出每部电影最新评论的时间
+            const latestCommentTime = sortedComments.length > 0 ? new Date(sortedComments[0].publishedAt).getTime() : 0;
+    
+            return {
+                ...movieData,
+                movieId,
+                comments: sortedComments, // 使用已排序的评论
+                latestCommentTime,
+            };
+        });
+    
+        // 按最新评论时间对电影进行排序
+        moviesWithComments.sort((a, b) => b.latestCommentTime - a.latestCommentTime);
+    
         return moviesWithComments;
     };
+    
 
 
     const fetchCommentsAndCount = async (uid) => {
@@ -174,7 +184,7 @@ const UserProfile = () => {
                     <HeatMap
                         value={value}
                         width={600}
-                        style={{ margin: 40, color: 'white', '--rhm-rect-active': 'red', transform: 'scale(1.5)' }}
+                        style={{ margin: 60, color: 'white', '--rhm-rect-active': 'red', transform: 'scale(1.7)' }}
                         startDate={new Date('2024/01/01')}
                         // endDate={new Date('2016/06/01')}
                         // monthLabels={}
@@ -196,7 +206,7 @@ const UserProfile = () => {
 
                         rectRender={(props, data) => {
                             // if (!data.count) return <rect {...props} />;
-                            const tooltipContent = `Date: ${data.date}, Count: ${data.count || 0}`;
+                            const tooltipContent = `Date: ${data.date}, Mark: ${data.count || 0}`;
                             return (
                                 <Tooltip placement="top" content={tooltipContent}>
                                     <rect {...props} />

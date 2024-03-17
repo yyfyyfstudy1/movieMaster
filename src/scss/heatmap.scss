@@ -95,3 +95,10 @@
 .react-vertical-timeline-element-content-arrow {
   left: -15px !important; /* 如果需要，根据实际效果调整这个值 */
 }
+
+
+/* heatmap.scss 或其他CSS文件 */
+.my-custom-timeline-element .vertical-timeline-element-date {
+  /* 调整位置 */
+  padding-left: 20px; /* 或其他值，根据需要调整 */
+}

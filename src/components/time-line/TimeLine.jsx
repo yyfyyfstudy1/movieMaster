@@ -15,9 +15,17 @@ const MovieCommentsTimeline = ({ movieData }) => {
                 <VerticalTimelineElement
                     key={movieId}
                     contentStyle={{ background: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: '1px solid #ddd', 
-                    width: '40%', // 设置卡片宽度为容器宽度的75%
                     }}
                     iconStyle={{ background: '#c62828', color: '#fff' }}
+                    date={ new Intl.DateTimeFormat('default', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false // 根据需要选择是否使用12小时制
+                    }).format(new Date(movie.latestCommentTime))}
+                    
                 >
                     <img
                         src={'https://image.tmdb.org/t/p/original/'+movie.imgUrl}

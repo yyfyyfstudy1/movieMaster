@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Avatar, Rating, Button, Card, CardContent, CardHeader, TextField, Typography, Box } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom'; // 引入Link组件
-import { database , firestore} from '../../api/firebaseConfig';
+import { database, firestore } from '../../api/firebaseConfig';
 import { ref, push, set, onValue } from 'firebase/database';
-import { doc, setDoc,getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Pagination } from '@mui/material';
-
-
+import { Input, InputAdornment, IconButton } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // 或者任何适合的图标
+import Icon from '@mui/icons-material/AutoFixHigh';
 const mockComments = [
     {
         id: 1,
@@ -41,6 +42,7 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
     const [comments, setComments] = useState([]); // 新增状态用于存储评论数据
     const [currentPage, setCurrentPage] = useState(1); // 当前页码
     const commentsPerPage = 5; // 每页评论数量
+    const [isLoading, setIsLoading] = useState(false);
 
 
     // 计算当前页的评论
@@ -103,7 +105,7 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
                     rate: newRating,
                     publishedAt: new Date().toISOString(),
                 });
-            
+
                 // 更新文档中的评论数组
                 await updateDoc(firestoreCommentRef, {
                     [`${movieId}.comments`]: existingComments,
@@ -123,7 +125,7 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
                     }
                 }, { merge: true });
             }
-            
+
         } catch (error) {
             console.error("Error writing document to Firestore: ", error);
         }
@@ -131,13 +133,71 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
 
 
 
-        
+
         setNewComment("");
         setNewRating(2);
 
     };
+    // 使用axios创建一个实例，配置OpenAI API的基础URL和Headers
+    const axios = require('axios');
+    const openAI = axios.create({
+        baseURL: 'https://api.openai.com/v1/chat',
+        headers: {
+            'Authorization': `Bearer ` + process.env.REACT_APP_OPENAI_API_KEY, // 替换为你的OpenAI API密钥
+            'Content-Type': 'application/json',
+        }
+    });
+    const handleExpandClick = async (inputValue) => {
+        console.log(inputValue)
+        setIsLoading(true); // 开始请求，设置加载状态为true
+        const messages = [
+            { "role": "system", "content": "Forget what you said before, You are a helpful assistant. Movie title: " + movieTitle },
+            { "role": "user", "content": "Please only expand my movie review based on my comment:" + inputValue + "please don't say anything else" },
+        ]
+        try {
+            // 首先从OpenAI获取回复
+            let response = await openAI.post('/completions', {
+                model: 'gpt-4-turbo-preview', // 使用GPT-3.5 Turbo模型, gpt-4
+                messages: messages, // 提问或给出的提示文本数组
+                temperature: 0.7,
+                max_tokens: 150,
+                n: 1,
+                stop: null,
+            });
 
+            console.log("Response from GPT-3.5 Turbo: ", response.data.choices[0].message.content);
+
+            // setNewComment(response.data.choices[0].message.content);
+
+            let currentText = "";
+            const typeCharacterByCharacter = (text, index) => {
+                if (index < text.length) {
+                  currentText += text.charAt(index);
+                  setNewComment(currentText);
+            
+                  // 随机时间间隔，模拟有快有慢的打字效果
+                  let typingSpeed = Math.random() * (100 - 30) + 30; // 50ms到200ms之间随机
+            
+                  setTimeout(() => {
+                    typeCharacterByCharacter(text, index + 1);
+                  }, typingSpeed);
+                } else {
+                  setIsLoading(false); // 完成加载
+                }
+              };
+
+              typeCharacterByCharacter(response.data.choices[0].message.content, 0);
+
+        } catch (error) {
+            console.error("Error fetching response from GPT-3.5 Turbo: ", error);
+            // 在错误情况下也返回undefined或特定错误信息
+            setNewComment("Error fetching response from GPT-3.5 Turbo: ", error);
+            setIsLoading(false);
+        }
+
+    };
     return (
+
         <div>
             <Typography variant="h5" gutterBottom>
                 Comments
@@ -166,9 +226,6 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
 
 
 
-
-
-
             {/* 评论提交表单 */}
             {currentUser ? (
                 <form onSubmit={handleSubmit}>
@@ -177,10 +234,24 @@ const CommentsSection = ({ movieId, movieTitle, imgUrl }) => {
                         multiline
                         rows={4}
                         variant="outlined"
-                        placeholder="Leave your comment here..."
+                        disabled={isLoading} // 根据isLoading禁用输入
+                        placeholder={isLoading ? "Generating comments..." : "Leave your comment here..."} // 根据isLoading显示不同的占位符
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        sx={{ mb: 2 }}
+                        sx={{ mb: 2, ".MuiOutlinedInput-root": { "& fieldset": { borderColor: "gray" } } }} // 确保边框显示，可以通过sx属性来自定义样式
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={() => handleExpandClick(newComment)}
+                                        disabled={!newComment.trim() || isLoading} // 如果newComment为空或只有空格，禁用按钮
+                                    >
+                                        <Icon style={{ fontSize: 30 }} />
+                                    </IconButton>
+
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                     <Box display="flex" alignItems="center" gap={2}>
                         <Rating
